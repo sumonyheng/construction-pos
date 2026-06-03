@@ -6,8 +6,8 @@
     <title>ឆាយ សុភាព លក់គ្រឿងសំណង់ - Cloud POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- db Core Client Library CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@db/db-js@2"></script>
+    <!-- Supabase Core Client Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -430,12 +430,13 @@
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
-     /* ==================== db INSTANTIATION ARCHITECTURE ==================== */
-const db_URL = "https://xzhvqfdyzorwofxysqfi.db.co"; 
-const db_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6aHZxZmR5em9yd29meHlzcWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODk4MTAsImV4cCI6MjA5NjA2NTgxMH0.UAs5Ay5ySefXBQhD4ZsK1UKwnbGkhNi3P1sw07E2DR4";
+        /* ==================== SUPABASE INSTANTIATION ARCHITECTURE ==================== */
+        const SUPABASE_URL = "https://xzhvqfdyzorwofxysqfi.supabase.co"; 
+        // PASTE YOUR LONG eyJhbGciOi... KEY DIRECTLY IN THE QUOTES BELOW:
+        const SUPABASE_ANON_KEY = "PASTE_YOUR_LEGACY_ANON_KEY_HERE";
 
-// Note the change here: window.db is used to call the library safely
-const db = window.db.createClient(db_URL, db_ANON_KEY);
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         /* Runtime Operational Caches */
         let suppliers = [];
         let buyers = [];
@@ -445,26 +446,26 @@ const db = window.db.createClient(db_URL, db_ANON_KEY);
         let supplyOrders = [];
         let cart = [];
 
-   // Synchronizes internal global data objects with db structures
-async function fetchAllData() {
-    try {
-        let { data: rSup } = await db.from('suppliers').select('*');
-        let { data: rBuy } = await db.from('buyers').select('*');
-        let { data: rProd } = await db.from('products').select('*');
-        let { data: rStmt } = await db.from('statements').select('*');
-        let { data: rInv } = await db.from('invoices').select('*');
-        let { data: rSO } = await db.from('supply_orders').select('*');
+        // Synchronizes internal global data objects with Supabase structures
+        async function fetchAllData() {
+            try {
+                let { data: rSup } = await db.from('suppliers').select('*');
+                let { data: rBuy } = await db.from('buyers').select('*');
+                let { data: rProd } = await db.from('products').select('*');
+                let { data: rStmt } = await db.from('statements').select('*');
+                let { data: rInv } = await db.from('invoices').select('*');
+                let { data: rSO } = await db.from('supply_orders').select('*');
 
-        suppliers = rSup || [];
-        buyers = rBuy || [];
-        products = rProd || [];
-        statements = rStmt || [];
-        invoices = rInv || [];
-        supplyOrders = rSO || [];
-    } catch (err) {
-        showToast("Global Cloud syncing failed.", "error");
-    }
-}
+                suppliers = rSup || [];
+                buyers = rBuy || [];
+                products = rProd || [];
+                statements = rStmt || [];
+                invoices = rInv || [];
+                supplyOrders = rSO || [];
+            } catch (err) {
+                showToast("Global Cloud syncing failed.", "error");
+            }
+        }
 
         /* ==================== SCREEN ROUTER ENGINE ==================== */
         async function navigate(view) {
@@ -479,7 +480,7 @@ async function fetchAllData() {
             activeBtn.classList.remove('text-slate-400', 'border-transparent');
             activeBtn.classList.add('bg-blue-600', 'text-white', 'border-blue-400');
 
-            await fetchAllData(); // Pull fresh snapshot updates from db database
+            await fetchAllData(); 
 
             if (view === 'pos') renderPOS();
             if (view === 'invoices') renderInvoices();
@@ -557,7 +558,7 @@ async function fetchAllData() {
             if (qty <= 0) {
                 cart = cart.filter(i => i.id !== id);
             } else if (qty > product.stock) {
-                showToast(`Stock bounds limit hit. Only ${product.stock} bags available.`, 'warning');
+                showToast(`Stock bounds limit hit. Only ${product.stock} units available.`, 'warning');
                 item.qty = product.stock;
             } else {
                 item.qty = qty;
@@ -618,7 +619,6 @@ async function fetchAllData() {
             const stmtId = 'STMT-' + Date.now().toString().slice(-6);
             const stats = window.currentCartStats;
 
-            // Loop and deduct item stock levels via standard programmatic mapping adjustments
             for (let item of cart) {
                 const targetStock = item.stock - item.qty;
                 await db.from('products').update({ stock: targetStock }).eq('id', item.id);
