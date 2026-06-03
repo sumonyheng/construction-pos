@@ -6,8 +6,8 @@
     <title>ឆាយ សុភាព លក់គ្រឿងសំណង់ - Cloud POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase Core Client Library CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- db Core Client Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@db/db-js@2"></script>
     
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -430,12 +430,12 @@
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
-        /* ==================== SUPABASE INSTANTIATION ARCHITECTURE ==================== */
-        const SUPABASE_URL = "https://xzhvqfdyzorwofxysqfi.supabase.co/rest/v1/"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6aHZxZmR5em9yd29meHlzcWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODk4MTAsImV4cCI6MjA5NjA2NTgxMH0.UAs5Ay5ySefXBQhD4ZsK1UKwnbGkhNi3P1sw07E2DR4";
+     /* ==================== db INSTANTIATION ARCHITECTURE ==================== */
+const db_URL = "https://xzhvqfdyzorwofxysqfi.db.co"; 
+const db_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6aHZxZmR5em9yd29meHlzcWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODk4MTAsImV4cCI6MjA5NjA2NTgxMH0.UAs5Ay5ySefXBQhD4ZsK1UKwnbGkhNi3P1sw07E2DR4";
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+// Note the change here: window.db is used to call the library safely
+const db = window.db.createClient(db_URL, db_ANON_KEY);
         /* Runtime Operational Caches */
         let suppliers = [];
         let buyers = [];
@@ -445,26 +445,26 @@
         let supplyOrders = [];
         let cart = [];
 
-        // Synchronizes internal global data objects with Supabase structures
-        async function fetchAllData() {
-            try {
-                let { data: rSup } = await supabase.from('suppliers').select('*');
-                let { data: rBuy } = await supabase.from('buyers').select('*');
-                let { data: rProd } = await supabase.from('products').select('*');
-                let { data: rStmt } = await supabase.from('statements').select('*');
-                let { data: rInv } = await supabase.from('invoices').select('*');
-                let { data: rSO } = await supabase.from('supply_orders').select('*');
+   // Synchronizes internal global data objects with db structures
+async function fetchAllData() {
+    try {
+        let { data: rSup } = await db.from('suppliers').select('*');
+        let { data: rBuy } = await db.from('buyers').select('*');
+        let { data: rProd } = await db.from('products').select('*');
+        let { data: rStmt } = await db.from('statements').select('*');
+        let { data: rInv } = await db.from('invoices').select('*');
+        let { data: rSO } = await db.from('supply_orders').select('*');
 
-                suppliers = rSup || [];
-                buyers = rBuy || [];
-                products = rProd || [];
-                statements = rStmt || [];
-                invoices = rInv || [];
-                supplyOrders = rSO || [];
-            } catch (err) {
-                showToast("Global Cloud syncing failed.", "error");
-            }
-        }
+        suppliers = rSup || [];
+        buyers = rBuy || [];
+        products = rProd || [];
+        statements = rStmt || [];
+        invoices = rInv || [];
+        supplyOrders = rSO || [];
+    } catch (err) {
+        showToast("Global Cloud syncing failed.", "error");
+    }
+}
 
         /* ==================== SCREEN ROUTER ENGINE ==================== */
         async function navigate(view) {
@@ -479,7 +479,7 @@
             activeBtn.classList.remove('text-slate-400', 'border-transparent');
             activeBtn.classList.add('bg-blue-600', 'text-white', 'border-blue-400');
 
-            await fetchAllData(); // Pull fresh snapshot updates from Supabase database
+            await fetchAllData(); // Pull fresh snapshot updates from db database
 
             if (view === 'pos') renderPOS();
             if (view === 'invoices') renderInvoices();
@@ -621,7 +621,7 @@
             // Loop and deduct item stock levels via standard programmatic mapping adjustments
             for (let item of cart) {
                 const targetStock = item.stock - item.qty;
-                await supabase.from('products').update({ stock: targetStock }).eq('id', item.id);
+                await db.from('products').update({ stock: targetStock }).eq('id', item.id);
             }
 
             const statement = {
@@ -637,7 +637,7 @@
                 invoice_id: null
             };
 
-            const { error } = await supabase.from('statements').insert([statement]);
+            const { error } = await db.from('statements').insert([statement]);
             if(error) return showToast(error.message, 'error');
 
             cart = [];
@@ -712,10 +712,10 @@
                 total: totalAmount
             };
 
-            await supabase.from('invoices').insert([invoice]);
+            await db.from('invoices').insert([invoice]);
 
             for(let id of selectedIds) {
-                await supabase.from('statements').update({ status: 'invoiced', invoice_id: invoiceId }).eq('id', id);
+                await db.from('statements').update({ status: 'invoiced', invoice_id: invoiceId }).eq('id', id);
             }
 
             document.getElementById('invoice-manual-id').value = '';
@@ -863,7 +863,7 @@
                 price: parseFloat(document.getElementById('prod-price').value),
                 stock: parseInt(document.getElementById('prod-stock').value)
             };
-            await supabase.from('products').insert([newProd]);
+            await db.from('products').insert([newProd]);
             closeModal('product-modal');
             await navigate('inventory');
             showToast('Catalog specification entry updated on cloud database', 'success');
@@ -871,7 +871,7 @@
 
         async function deleteProduct(id) {
             if(confirm('Purge this unique product descriptor line item from cloud tables?')) {
-                await supabase.from('products').delete().eq('id', id);
+                await db.from('products').delete().eq('id', id);
                 await navigate('inventory');
             }
         }
@@ -946,9 +946,9 @@
                 cost: parseFloat(document.getElementById('supply-cost').value),
                 status: document.getElementById('supply-status').value
             };
-            await supabase.from('supply_orders').insert([order]);
+            await db.from('supply_orders').insert([order]);
             const targetProd = products.find(x => x.id === pId);
-            if(targetProd) await supabase.from('products').update({ stock: targetProd.stock + qty }).eq('id', pId);
+            if(targetProd) await db.from('products').update({ stock: targetProd.stock + qty }).eq('id', pId);
             
             closeModal('supply-modal');
             await navigate('supply');
@@ -965,7 +965,7 @@
             e.preventDefault();
             const id = document.getElementById('pay-order-id').value;
             const status = document.getElementById('pay-status').value;
-            await supabase.from('supply_orders').update({ status: status }).eq('id', id);
+            await db.from('supply_orders').update({ status: status }).eq('id', id);
             closeModal('payment-modal');
             await navigate('supply');
         }
@@ -987,7 +987,7 @@
         async function saveBuyer(e) {
             e.preventDefault();
             const locs = document.getElementById('buyer-locations').value.split('\n').map(s=>s.trim()).filter(s=>s);
-            await supabase.from('buyers').insert([{ id: 'B' + Date.now(), name: document.getElementById('buyer-name').value, locations: locs }]);
+            await db.from('buyers').insert([{ id: 'B' + Date.now(), name: document.getElementById('buyer-name').value, locations: locs }]);
             closeModal('buyer-modal');
             await navigate('contacts');
         }
@@ -995,7 +995,7 @@
         function openSupplierModal() { document.getElementById('supplier-modal').classList.remove('hidden'); }
         async function saveSupplier(e) {
             e.preventDefault();
-            await supabase.from('suppliers').insert([{ id: 'S' + Date.now(), name: document.getElementById('supplier-name').value, contact: document.getElementById('supplier-contact').value }]);
+            await db.from('suppliers').insert([{ id: 'S' + Date.now(), name: document.getElementById('supplier-name').value, contact: document.getElementById('supplier-contact').value }]);
             closeModal('supplier-modal');
             await navigate('contacts');
         }
