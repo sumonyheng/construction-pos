@@ -6,7 +6,6 @@
     <title>ឆាយ សុភាព លក់គ្រឿងសំណង់ - Cloud POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Supabase Core Client Library CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
@@ -26,234 +25,297 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans h-screen flex overflow-hidden">
 
-    <!-- NAVIGATION BAR -->
-    <nav class="w-64 bg-slate-900 text-white flex flex-col transition-all duration-300 z-20">
-        <div class="p-5 border-b border-slate-700">
-            <h1 class="text-lg font-bold leading-tight text-blue-400">ឆាយ សុភាព<br><span class="text-sm text-white">លក់គ្រឿងសំណង់</span></h1>
-        </div>
-        <div class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto">
-            <button onclick="navigate('pos')" id="nav-pos" class="nav-btn flex items-center gap-3 px-6 py-3 text-left bg-blue-600 text-white w-full transition-colors border-r-4 border-blue-400">
-                <i class="fa-solid fa-file-invoice w-5"></i> Create Statement
-            </button>
-            <button onclick="navigate('invoices')" id="nav-invoices" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
-                <i class="fa-solid fa-file-invoice-dollar w-5"></i> Invoices
-            </button>
-            <button onclick="navigate('inventory')" id="nav-inventory" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
-                <i class="fa-solid fa-boxes-stacked w-5"></i> Inventory
-            </button>
-            <button onclick="navigate('supply')" id="nav-supply" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
-                <i class="fa-solid fa-truck-ramp-box w-5"></i> Supply History
-            </button>
-            <button onclick="navigate('contacts')" id="nav-contacts" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
-                <i class="fa-solid fa-users w-5"></i> Contacts
-            </button>
-        </div>
-        <div class="p-5 border-t border-slate-700 text-xs text-slate-500 flex justify-between">
-            <span>Production Hub v3.1</span>
-        </div>
-    </nav>
-
-    <!-- CONTENT DISPLAY FRAMES -->
-    <main class="flex-1 relative h-full">
-        
-        <!-- POS AREA -->
-        <div id="view-pos" class="view-section h-full flex">
-            <div class="flex-1 flex flex-col bg-gray-50 h-full">
-                <div class="p-4 bg-white shadow-sm flex flex-col gap-3 z-10">
+    <div id="view-login" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-8 rounded-xl shadow-2xl flex flex-col">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-slate-900 leading-tight">ឆាយ សុភាព លក់គ្រឿងសំណង់</h1>
+                <p class="text-sm text-gray-500 mt-1">Cloud ERP & Inventory Control Hub</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">System Username</label>
                     <div class="relative">
-                        <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="pos-search" onkeyup="filterPOS()" placeholder="Search products by title or code..." class="w-full pl-10 pr-4 py-2 border rounded focus:border-blue-500 outline-none">
+                        <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="login-username" required placeholder="Enter username..." class="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:border-blue-500 outline-none">
                     </div>
                 </div>
-                <div class="flex-1 overflow-y-auto p-4">
-                    <div id="pos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-                </div>
-            </div>
-
-            <div class="w-[400px] bg-white border-l shadow-xl flex flex-col h-full z-10">
-                <div class="p-4 border-b bg-slate-50">
-                    <h2 class="text-lg font-bold mb-3"><i class="fa-solid fa-file-lines mr-2"></i>New Statement</h2>
-                    <div class="flex flex-col gap-2 text-sm">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Target Client/Buyer</label>
-                            <select id="cart-buyer" onchange="updateCartLocations()" class="w-full p-2 border rounded outline-none"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Project Site / Drop-off Point</label>
-                            <select id="cart-location" class="w-full p-2 border rounded outline-none"></select>
-                        </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Security Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:border-blue-500 outline-none">
                     </div>
                 </div>
-                
-                <div class="flex-1 overflow-y-auto p-4" id="cart-items"></div>
-
-                <div class="p-4 border-t bg-gray-50 flex flex-col gap-3">
-                    <div class="flex justify-between text-sm">
-                        <span>Subtotal</span>
-                        <span id="cart-subtotal" class="font-medium">$0.00</span>
-                    </div>
-                    <div class="flex gap-2 items-center text-sm">
-                        <div class="flex-1 flex justify-between items-center">
-                            <span>Discount Override ($)</span>
-                            <input type="number" id="cart-discount" value="0" min="0" onchange="updateCartTotals()" class="w-20 p-1 border rounded text-right">
-                        </div>
-                        <span id="cart-discount-amount" class="w-16 text-right font-medium text-green-600">-$0.00</span>
-                    </div>
-                    <div class="border-t pt-2 flex justify-between items-center text-xl font-bold">
-                        <span>Total Checkout</span>
-                        <span id="cart-total" class="text-blue-600">$0.00</span>
-                    </div>
-                    <button onclick="saveStatement()" id="checkout-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded mt-2 disabled:opacity-50" disabled>
-                        Commit & Post Statement
-                    </button>
-                </div>
-            </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors mt-2 shadow-md">
+                    Authenticate Secure Session
+                </button>
+            </form>
         </div>
+    </div>
 
-        <!-- INVOICES TAB -->
-        <div id="view-invoices" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto bg-gray-50">
-            <h2 class="text-2xl font-bold mb-6">Consolidated Billing & Invoices</h2>
-            <div class="bg-white p-6 rounded-lg shadow-sm border mb-6">
-                <h3 class="text-lg font-bold mb-4 text-blue-800 border-b pb-2">Generate Billing Statement</h3>
-                <div class="grid grid-cols-3 gap-4 mb-4">
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Filter by Buyer</label>
-                        <select id="invoice-buyer" onchange="loadPendingStatements()" class="w-full p-2 border rounded"></select>
+    <div id="app-wrapper" class="w-full h-full flex hidden">
+        
+        <nav class="w-64 bg-slate-900 text-white flex flex-col transition-all duration-300 z-20">
+            <div class="p-5 border-b border-slate-700 flex justify-between items-start">
+                <div>
+                    <h1 class="text-lg font-bold leading-tight text-blue-400">ឆាយ សុភាព<br><span class="text-sm text-white">លក់គ្រឿងសំណង់</span></h1>
+                </div>
+                <button onclick="handleLogout()" class="text-xs bg-slate-800 border border-slate-700 text-red-400 hover:bg-red-950 px-2 py-1 rounded transition-colors" title="End Active Session">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+            <div class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto">
+                <button onclick="navigate('pos')" id="nav-pos" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
+                    <i class="fa-solid fa-file-invoice w-5"></i> Create Statement
+                </button>
+                <button onclick="navigate('invoices')" id="nav-invoices" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
+                    <i class="fa-solid fa-file-invoice-dollar w-5"></i> Invoices
+                </button>
+                <button onclick="navigate('inventory')" id="nav-inventory" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
+                    <i class="fa-solid fa-boxes-stacked w-5"></i> Inventory
+                </button>
+                <button onclick="navigate('supply')" id="nav-supply" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
+                    <i class="fa-solid fa-truck-ramp-box w-5"></i> Supply History
+                </button>
+                <button onclick="navigate('contacts')" id="nav-contacts" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
+                    <i class="fa-solid fa-users w-5"></i> Contacts
+                </button>
+                <button onclick="navigate('users')" id="nav-users" class="nav-btn flex items-center gap-3 px-6 py-3 text-left text-slate-400 hover:text-white hover:bg-slate-800 w-full transition-colors border-r-4 border-transparent">
+                    <i class="fa-solid fa-user-shield w-5"></i> User Management
+                </button>
+            </div>
+            <div class="p-5 border-t border-slate-700 text-xs text-slate-500 flex flex-col gap-1">
+                <div class="flex justify-between">
+                    <span>User Account:</span>
+                    <span id="nav-current-user" class="font-bold text-blue-400">admin</span>
+                </div>
+                <span>Production Hub v3.2</span>
+            </div>
+        </nav>
+
+        <main class="flex-1 relative h-full">
+            
+            <div id="view-pos" class="view-section h-full flex">
+                <div class="flex-1 flex flex-col bg-gray-50 h-full">
+                    <div class="p-4 bg-white shadow-sm flex flex-col gap-3 z-10">
+                        <div class="relative">
+                            <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="pos-search" onkeyup="filterPOS()" placeholder="Search products by title or code..." class="w-full pl-10 pr-4 py-2 border rounded focus:border-blue-500 outline-none">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold mb-1">Manual Invoice Reference #</label>
-                        <input type="text" id="invoice-manual-id" placeholder="Auto-generates if blank" class="w-full p-2 border rounded">
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <div id="pos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
                     </div>
-                    <div class="flex items-end">
-                        <button onclick="generateInvoice()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded">
-                            <i class="fa-solid fa-file-circle-plus mr-1"></i> Finalize Invoice
+                </div>
+
+                <div class="w-[400px] bg-white border-l shadow-xl flex flex-col h-full z-10">
+                    <div class="p-4 border-b bg-slate-50">
+                        <h2 class="text-lg font-bold mb-3"><i class="fa-solid fa-file-lines mr-2"></i>New Statement</h2>
+                        <div class="flex flex-col gap-2 text-sm">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Target Client/Buyer</label>
+                                <select id="cart-buyer" onchange="updateCartLocations()" class="w-full p-2 border rounded outline-none"></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Project Site / Drop-off Point</label>
+                                <select id="cart-location" class="w-full p-2 border rounded outline-none"></select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto p-4" id="cart-items"></div>
+
+                    <div class="p-4 border-t bg-gray-50 flex flex-col gap-3">
+                        <div class="flex justify-between text-sm">
+                            <span>Subtotal</span>
+                            <span id="cart-subtotal" class="font-medium">$0.00</span>
+                        </div>
+                        <div class="flex gap-2 items-center text-sm">
+                            <div class="flex-1 flex justify-between items-center">
+                                <span>Discount Override ($)</span>
+                                <input type="number" id="cart-discount" value="0" min="0" onchange="updateCartTotals()" class="w-20 p-1 border rounded text-right">
+                            </div>
+                            <span id="cart-discount-amount" class="w-16 text-right font-medium text-green-600">-$0.00</span>
+                        </div>
+                        <div class="border-t pt-2 flex justify-between items-center text-xl font-bold">
+                            <span>Total Checkout</span>
+                            <span id="cart-total" class="text-blue-600">$0.00</span>
+                        </div>
+                        <button onclick="saveStatement()" id="checkout-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded mt-2 disabled:opacity-50" disabled>
+                            Commit & Post Statement
                         </button>
                     </div>
                 </div>
-                <div class="overflow-x-auto border rounded max-h-60 overflow-y-auto">
-                    <table class="w-full text-left text-sm border-collapse">
-                        <thead class="bg-gray-100 sticky top-0">
-                            <tr>
-                                <th class="p-3 w-10 text-center"><input type="checkbox" id="check-all-stmts" onchange="toggleAllStatements()"></th>
-                                <th class="p-3 font-semibold">Statement ID</th>
-                                <th class="p-3 font-semibold">Date Created</th>
-                                <th class="p-3 font-semibold">Project Site</th>
-                                <th class="p-3 font-semibold text-right">Value</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pending-stmts-tbody" class="divide-y bg-white"></tbody>
-                    </table>
-                </div>
             </div>
 
-            <div class="bg-white p-6 rounded-lg shadow-sm border flex-1 flex flex-col">
-                <h3 class="text-lg font-bold mb-4 border-b pb-2">Historical Invoice Archive</h3>
-                <div class="overflow-x-auto flex-1">
-                    <table class="w-full text-left text-sm border-collapse">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="p-3 font-semibold">Invoice ID</th>
-                                <th class="p-3 font-semibold">Date Billed</th>
-                                <th class="p-3 font-semibold">Account Entity</th>
-                                <th class="p-3 font-semibold text-right">Total Net Cost</th>
-                                <th class="p-3 font-semibold text-center">Print</th>
-                            </tr>
-                        </thead>
-                        <tbody id="invoices-tbody" class="divide-y bg-white"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- INVENTORY TAB -->
-        <div id="view-inventory" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Catalog & Inventory Levels</h2>
-                <button onclick="openProductModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> Register New Material
-                </button>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm border flex-1 overflow-hidden flex flex-col">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-100 border-b">
-                            <tr>
-                                <th class="p-4 font-semibold text-sm">Material SKU</th>
-                                <th class="p-4 font-semibold text-sm">Description</th>
-                                <th class="p-4 font-semibold text-sm">Primary Supplier</th>
-                                <th class="p-4 font-semibold text-sm">Retail Base Unit Price</th>
-                                <th class="p-4 font-semibold text-sm">Stock Level</th>
-                                <th class="p-4 font-semibold text-sm text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-tbody" class="divide-y text-sm bg-white"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- SUPPLY LOGS -->
-        <div id="view-supply" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto bg-gray-50">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold">Inbound Supply Audits</h2>
-                    <p class="text-sm text-gray-500">Track raw metrics, direct warehouse incoming shipments, and supplier invoice states.</p>
-                </div>
-                <button onclick="openSupplyModal()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded flex items-center gap-2">
-                    <i class="fa-solid fa-truck-arrow-right"></i> Log Incoming Freight
-                </button>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm border flex-1 flex flex-col overflow-hidden">
-                <div class="p-4 border-b bg-gray-50 flex gap-4 items-center">
-                    <label class="font-semibold text-sm text-gray-700"><i class="fa-solid fa-filter mr-1"></i> Filter Supplier Channel:</label>
-                    <select id="filter-supply-supplier" onchange="renderSupplyTable()" class="p-2 border rounded text-sm w-64 outline-none"></select>
-                </div>
-                <div class="overflow-y-auto flex-1">
-                    <table class="w-full text-left text-sm border-collapse">
-                        <thead class="bg-gray-100 sticky top-0 z-10">
-                            <tr>
-                                <th class="p-4 font-semibold text-gray-600">Arrival Date</th>
-                                <th class="p-4 font-semibold text-gray-600">Supplier Account</th>
-                                <th class="p-4 font-semibold text-gray-600">Material Description</th>
-                                <th class="p-4 font-semibold text-gray-600 text-right">Volume</th>
-                                <th class="p-4 font-semibold text-gray-600 text-right">Wholesale Cost/Unit</th>
-                                <th class="p-4 font-semibold text-gray-600 text-right">Aggregated Debt</th>
-                                <th class="p-4 font-semibold text-gray-600 text-center">Settlement Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="supply-tbody" class="divide-y bg-white"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTACT DIRECTORY -->
-        <div id="view-contacts" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto gap-6 bg-gray-50">
-            <h2 class="text-2xl font-bold">Entity Index (CRM)</h2>
-            <div class="grid grid-cols-2 gap-6 h-full">
-                <div class="bg-white rounded-lg shadow-sm border flex flex-col h-full">
-                    <div class="p-4 border-b flex justify-between items-center bg-blue-50">
-                        <h3 class="font-bold text-lg text-blue-800"><i class="fa-solid fa-users-viewfinder mr-2"></i>Accounts / Buyers</h3>
-                        <button onclick="openBuyerModal()" class="bg-blue-600 text-white px-3 py-1 text-sm rounded hover:bg-blue-700">Add Corporate Client</button>
+            <div id="view-invoices" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto bg-gray-50">
+                <h2 class="text-2xl font-bold mb-6">Consolidated Billing & Invoices</h2>
+                <div class="bg-white p-6 rounded-lg shadow-sm border mb-6">
+                    <h3 class="text-lg font-bold mb-4 text-blue-800 border-b pb-2">Generate Billing Statement</h3>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Filter by Buyer</label>
+                            <select id="invoice-buyer" onchange="loadPendingStatements()" class="w-full p-2 border rounded"></select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Manual Invoice Reference #</label>
+                            <input type="text" id="invoice-manual-id" placeholder="Auto-generates if blank" class="w-full p-2 border rounded">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="generateInvoice()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded">
+                                <i class="fa-solid fa-file-circle-plus mr-1"></i> Finalize Invoice
+                            </button>
+                        </div>
                     </div>
-                    <div class="overflow-y-auto p-4 flex-1">
-                        <ul id="buyers-list" class="divide-y"></ul>
+                    <div class="overflow-x-auto border rounded max-h-60 overflow-y-auto">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead class="bg-gray-100 sticky top-0">
+                                <tr>
+                                    <th class="p-3 w-10 text-center"><input type="checkbox" id="check-all-stmts" onchange="toggleAllStatements()"></th>
+                                    <th class="p-3 font-semibold">Statement ID</th>
+                                    <th class="p-3 font-semibold">Date Created</th>
+                                    <th class="p-3 font-semibold">Project Site</th>
+                                    <th class="p-3 font-semibold text-right">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending-stmts-tbody" class="divide-y bg-white"></tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="bg-white rounded-lg shadow-sm border flex flex-col h-full">
-                    <div class="p-4 border-b flex justify-between items-center bg-purple-50">
-                        <h3 class="font-bold text-lg text-purple-800"><i class="fa-solid fa-truck-field mr-2"></i>Material Vendors</h3>
-                        <button onclick="openSupplierModal()" class="bg-purple-600 text-white px-3 py-1 text-sm rounded hover:bg-purple-700">Register Supplier Profile</button>
-                    </div>
-                    <div class="overflow-y-auto p-4 flex-1">
-                        <ul id="suppliers-list" class="divide-y"></ul>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border flex-1 flex flex-col">
+                    <h3 class="text-lg font-bold mb-4 border-b pb-2">Historical Invoice Archive</h3>
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-3 font-semibold">Invoice ID</th>
+                                    <th class="p-3 font-semibold">Date Billed</th>
+                                    <th class="p-3 font-semibold">Account Entity</th>
+                                    <th class="p-3 font-semibold text-right">Total Net Cost</th>
+                                    <th class="p-3 font-semibold text-center">Print</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoices-tbody" class="divide-y bg-white"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
 
-    <!-- CORE INTERACTION MODALS -->
+            <div id="view-inventory" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Catalog & Inventory Levels</h2>
+                    <button onclick="openProductModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Register New Material
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border flex-1 overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-100 border-b">
+                                <tr>
+                                    <th class="p-4 font-semibold text-sm">Material SKU</th>
+                                    <th class="p-4 font-semibold text-sm">Description</th>
+                                    <th class="p-4 font-semibold text-sm">Primary Supplier</th>
+                                    <th class="p-4 font-semibold text-sm">Retail Base Unit Price</th>
+                                    <th class="p-4 font-semibold text-sm">Stock Level</th>
+                                    <th class="p-4 font-semibold text-sm text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-tbody" class="divide-y text-sm bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-supply" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto bg-gray-50">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold">Inbound Supply Audits</h2>
+                        <p class="text-sm text-gray-500">Track raw metrics, direct warehouse incoming shipments, and supplier invoice states.</p>
+                    </div>
+                    <button onclick="openSupplyModal()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded flex items-center gap-2">
+                        <i class="fa-solid fa-truck-arrow-right"></i> Log Incoming Freight
+                    </button>
+                </div>
+                <div class="bg-white rounded-lg shadow-sm border flex-1 flex flex-col overflow-hidden">
+                    <div class="p-4 border-b bg-gray-50 flex gap-4 items-center">
+                        <label class="font-semibold text-sm text-gray-700"><i class="fa-solid fa-filter mr-1"></i> Filter Supplier Channel:</label>
+                        <select id="filter-supply-supplier" onchange="renderSupplyTable()" class="p-2 border rounded text-sm w-64 outline-none"></select>
+                    </div>
+                    <div class="overflow-y-auto flex-1">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead class="bg-gray-100 sticky top-0 z-10">
+                                <tr>
+                                    <th class="p-4 font-semibold text-gray-600">Arrival Date</th>
+                                    <th class="p-4 font-semibold text-gray-600">Supplier Account</th>
+                                    <th class="p-4 font-semibold text-gray-600">Material Description</th>
+                                    <th class="p-4 font-semibold text-gray-600 text-right">Volume</th>
+                                    <th class="p-4 font-semibold text-gray-600 text-right">Wholesale Cost/Unit</th>
+                                    <th class="p-4 font-semibold text-gray-600 text-right">Aggregated Debt</th>
+                                    <th class="p-4 font-semibold text-gray-600 text-center">Settlement Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="supply-tbody" class="divide-y bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-contacts" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto gap-6 bg-gray-50">
+                <h2 class="text-2xl font-bold">Entity Index (CRM)</h2>
+                <div class="grid grid-cols-2 gap-6 h-full">
+                    <div class="bg-white rounded-lg shadow-sm border flex flex-col h-full">
+                        <div class="p-4 border-b flex justify-between items-center bg-blue-50">
+                            <h3 class="font-bold text-lg text-blue-800"><i class="fa-solid fa-users-viewfinder mr-2"></i>Accounts / Buyers</h3>
+                            <button onclick="openBuyerModal()" class="bg-blue-600 text-white px-3 py-1 text-sm rounded hover:bg-blue-700">Add Corporate Client</button>
+                        </div>
+                        <div class="overflow-y-auto p-4 flex-1">
+                            <ul id="buyers-list" class="divide-y"></ul>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm border flex flex-col h-full">
+                        <div class="p-4 border-b flex justify-between items-center bg-purple-50">
+                            <h3 class="font-bold text-lg text-purple-800"><i class="fa-solid fa-truck-field mr-2"></i>Material Vendors</h3>
+                            <button onclick="openSupplierModal()" class="bg-purple-600 text-white px-3 py-1 text-sm rounded hover:bg-purple-700">Register Supplier Profile</button>
+                        </div>
+                        <div class="overflow-y-auto p-4 flex-1">
+                            <ul id="suppliers-list" class="divide-y"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-users" class="view-section hidden h-full flex flex-col p-6 overflow-y-auto bg-gray-50">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold">Internal User Control Matrix</h2>
+                        <p class="text-sm text-gray-500">Manage terminal access, personnel authorization, and view system user accounts.</p>
+                    </div>
+                    <button onclick="openUserModal()" id="admin-add-user-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Register System Operator
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm border flex-1 overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-100 border-b">
+                                <tr>
+                                    <th class="p-4 font-semibold text-sm">System Username</th>
+                                    <th class="p-4 font-semibold text-sm">Security Role</th>
+                                    <th class="p-4 font-semibold text-sm">Account Creation Context</th>
+                                    <th class="p-4 font-semibold text-sm text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody" class="divide-y text-sm bg-white"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
     <div id="print-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-full">
             <div id="print-area" class="p-8 overflow-y-auto bg-white text-gray-800 text-sm"></div>
@@ -264,7 +326,6 @@
         </div>
     </div>
 
-    <!-- REGISTER NEW MATERIAL MODAL -->
     <div id="product-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-lg shadow-2xl">
             <div class="p-4 border-b flex justify-between items-center">
@@ -310,7 +371,6 @@
         </div>
     </div>
 
-    <!-- LOG INCOMING FREIGHT MODAL -->
     <div id="supply-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-lg shadow-2xl">
             <div class="p-4 border-b flex justify-between items-center bg-teal-50">
@@ -355,7 +415,6 @@
         </div>
     </div>
 
-    <!-- UPDATE VENDOR SETTLEMENT PAYMENT STATE -->
     <div id="payment-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-sm rounded-lg shadow-2xl">
             <div class="p-4 border-b flex justify-between items-center bg-teal-50">
@@ -379,7 +438,6 @@
         </div>
     </div>
 
-    <!-- ADD BUYER CLIENT RECORD MODAL -->
     <div id="buyer-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-lg shadow-2xl">
             <div class="p-4 border-b flex justify-between items-center">
@@ -403,7 +461,6 @@
         </div>
     </div>
 
-    <!-- ADD SUPPLIER ACCOUNT MODAL -->
     <div id="supplier-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-lg shadow-2xl">
             <div class="p-4 border-b flex justify-between items-center">
@@ -427,12 +484,41 @@
         </div>
     </div>
 
+    <div id="user-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-lg shadow-2xl">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg">Register System Operator</h3>
+                <button onclick="closeModal('user-modal')" class="text-gray-400"><i class="fa-solid fa-times"></i></button>
+            </div>
+            <form onsubmit="saveUser(event)" class="p-4 flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Username Reference</label>
+                    <input type="text" id="user-mgmt-username" required class="w-full p-2 border rounded outline-none" placeholder="e.g., vichea.s">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Security Access Password</label>
+                    <input type="text" id="user-mgmt-password" required class="w-full p-2 border rounded outline-none" placeholder="Enter simple operational code...">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Role Allocation Group</label>
+                    <select id="user-mgmt-role" class="w-full p-2 border rounded outline-none">
+                        <option value="Staff">Staff (Read / Transact Only)</option>
+                        <option value="Admin">Admin (Full System Authorization)</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 mt-2">
+                    <button type="button" onclick="closeModal('user-modal')" class="px-4 py-2 border rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
         /* ==================== SUPABASE INSTANTIATION ARCHITECTURE ==================== */
         const SUPABASE_URL = "https://xzhvqfdyzorwofxysqfi.supabase.co"; 
-        // PASTE YOUR LONG eyJhbGciOi... KEY DIRECTLY IN THE QUOTES BELOW:
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6aHZxZmR5em9yd29meHlzcWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0ODk4MTAsImV4cCI6MjA5NjA2NTgxMH0.UAs5Ay5ySefXBQhD4ZsK1UKwnbGkhNi3P1sw07E2DR4";
 
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -444,7 +530,11 @@
         let statements = [];
         let invoices = [];
         let supplyOrders = [];
+        let internalUsers = [];
         let cart = [];
+        
+        /* Session Tracking Parameters */
+        let currentActiveUser = null;
 
         // Synchronizes internal global data objects with Supabase structures
         async function fetchAllData() {
@@ -455,6 +545,7 @@
                 let { data: rStmt } = await db.from('statements').select('*');
                 let { data: rInv } = await db.from('invoices').select('*');
                 let { data: rSO } = await db.from('supply_orders').select('*');
+                let { data: rUsers } = await db.from('system_users').select('*');
 
                 suppliers = rSup || [];
                 buyers = rBuy || [];
@@ -462,9 +553,95 @@
                 statements = rStmt || [];
                 invoices = rInv || [];
                 supplyOrders = rSO || [];
+                internalUsers = rUsers || [];
             } catch (err) {
                 showToast("Global Cloud syncing failed.", "error");
             }
+        }
+
+        /* ==================== SECURITY & AUTH ENGINES ==================== */
+        async function checkInitialSession() {
+            const cachedUser = localStorage.getItem('erp_active_user');
+            if (cachedUser) {
+                currentActiveUser = JSON.parse(cachedUser);
+                document.getElementById('nav-current-user').innerText = currentActiveUser.username;
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('app-wrapper').classList.remove('hidden');
+                
+                // Hide administrative actions if logged in as simple Staff
+                if (currentActiveUser.role.toLowerCase() !== 'admin') {
+                    document.getElementById('nav-users').classList.add('hidden');
+                    document.getElementById('admin-add-user-btn').classList.add('hidden');
+                } else {
+                    document.getElementById('nav-users').classList.remove('hidden');
+                    document.getElementById('admin-add-user-btn').classList.remove('hidden');
+                }
+                
+                await fetchAllData();
+                navigate('pos');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('login-username').value.trim();
+            const passwordInput = document.getElementById('login-password').value.trim();
+
+            // Load freshest system users rows out of cloud storage bucket
+            try {
+                let { data: fetchedUsers, error } = await db.from('system_users').select('*');
+                if (error) throw error;
+                
+                internalUsers = fetchedUsers || [];
+            } catch (err) {
+                console.error("User validation fault:", err);
+            }
+
+            // Fallback bootstrap profile rule check: admin/admin matches
+            let matchingUser = internalUsers.find(u => u.username === usernameInput && u.password === passwordInput);
+            
+            if (!matchingUser && usernameInput === 'admin' && passwordInput === 'admin') {
+                matchingUser = { id: 'bootstrap-root', username: 'admin', password: 'admin', role: 'Admin', created_at: new Date() };
+                
+                // Automatically register root into cloud storage if empty
+                try {
+                    await db.from('system_users').insert([{ username: 'admin', password: 'admin', role: 'Admin' }]);
+                } catch(e){}
+            }
+
+            if (matchingUser) {
+                currentActiveUser = matchingUser;
+                localStorage.setItem('erp_active_user', JSON.stringify(matchingUser));
+                
+                document.getElementById('nav-current-user').innerText = matchingUser.username;
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('app-wrapper').classList.remove('hidden');
+                
+                if (matchingUser.role.toLowerCase() !== 'admin') {
+                    document.getElementById('nav-users').classList.add('hidden');
+                    document.getElementById('admin-add-user-btn').classList.add('hidden');
+                } else {
+                    document.getElementById('nav-users').classList.remove('hidden');
+                    document.getElementById('admin-add-user-btn').classList.remove('hidden');
+                }
+
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+                
+                await fetchAllData();
+                navigate('pos');
+                showToast(`Session established for user ${matchingUser.username}`, 'success');
+            } else {
+                showToast('Authentication failed. Invalid login codes.', 'error');
+            }
+        }
+
+        function handleLogout() {
+            currentActiveUser = null;
+            localStorage.removeItem('erp_active_user');
+            document.getElementById('app-wrapper').classList.add('hidden');
+            document.getElementById('view-login').classList.remove('hidden');
+            showToast('Session accurately wiped from client instance memory.', 'info');
         }
 
         /* ==================== SCREEN ROUTER ENGINE ==================== */
@@ -477,8 +654,10 @@
                 btn.classList.add('text-slate-400', 'border-transparent');
             });
             const activeBtn = document.getElementById(`nav-${view}`);
-            activeBtn.classList.remove('text-slate-400', 'border-transparent');
-            activeBtn.classList.add('bg-blue-600', 'text-white', 'border-blue-400');
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400', 'border-transparent');
+                activeBtn.classList.add('bg-blue-600', 'text-white', 'border-blue-400');
+            }
 
             await fetchAllData(); 
 
@@ -487,6 +666,7 @@
             if (view === 'inventory') renderInventory();
             if (view === 'supply') renderSupply();
             if (view === 'contacts') renderContacts();
+            if (view === 'users') renderUsers();
         }
 
         /* ==================== COMDATA POS RENDERING FLOWS ==================== */
@@ -513,14 +693,13 @@
             }
         }
 
-function filterPOS() {
+        function filterPOS() {
             const query = document.getElementById('pos-search').value.toLowerCase();
             const grid = document.getElementById('pos-grid');
             const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query));
 
             grid.innerHTML = filtered.map(p => {
                 const isOOS = p.stock <= 0;
-                // Look up the supplier name using the product's supplier_id
                 const supplier = suppliers.find(s => s.id === p.supplier_id);
                 const supplierName = supplier ? supplier.name : 'Unknown Supplier';
 
@@ -531,9 +710,8 @@ function filterPOS() {
                         <div class="text-2xl">${p.icon || '📦'}</div>
                     </div>
                     <div class="font-bold text-gray-800 flex-1 leading-tight my-1">${p.name}</div>
-                    <!-- Added Supplier Information badge below the product name -->
                     <div class="text-xs text-purple-600 font-medium mb-2 bg-purple-50 px-2 py-0.5 rounded self-start">
-                        <i class="fa-solid fa-truck field mr-1"></i>${supplierName}
+                        <i class="fa-solid fa-truck mr-1"></i>${supplierName}
                     </div>
                     <div class="flex justify-between items-end mt-2">
                         <div class="text-lg font-bold text-blue-600">$${Number(p.price).toFixed(2)}</div>
@@ -1008,6 +1186,78 @@ function filterPOS() {
             await navigate('contacts');
         }
 
+        /* ==================== USER MANAGEMENT MATRIX ENGINE ==================== */
+        function renderUsers() {
+            const tbody = document.getElementById('users-tbody');
+            if (internalUsers.length === 0) {
+                tbody.innerHTML = `
+                <tr>
+                    <td class="p-4 font-semibold">admin</td>
+                    <td class="p-4"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">Admin</span></td>
+                    <td class="p-4 text-gray-400 italic">System core booststrap account</td>
+                    <td class="p-4 text-right text-gray-300">-</td>
+                </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = internalUsers.map(u => `
+                <tr class="hover:bg-gray-50 border-b">
+                    <td class="p-4 font-mono font-semibold text-slate-900">${u.username}</td>
+                    <td class="p-4">
+                        <span class="${u.role.toLowerCase() === 'admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-700'} text-xs px-2.5 py-0.5 rounded-full font-bold">
+                            ${u.role}
+                        </span>
+                    </td>
+                    <td class="p-4 text-gray-500">${u.created_at ? new Date(u.created_at).toLocaleString() : 'N/A'}</td>
+                    <td class="p-4 text-right">
+                        ${u.username === 'admin' ? '<span class="text-gray-300 text-xs italic">Protected</span>' : `
+                            <button onclick="deleteUser('${u.id}')" class="text-red-400 hover:text-red-600 px-2">
+                                <i class="fa-solid fa-user-xmark"></i>
+                            </button>
+                        `}
+                    </td>
+                </tr>`).join('');
+        }
+
+        function openUserModal() {
+            document.getElementById('user-mgmt-username').value = '';
+            document.getElementById('user-mgmt-password').value = '';
+            document.getElementById('user-modal').classList.remove('hidden');
+        }
+
+        async function saveUser(e) {
+            e.preventDefault();
+            const username = document.getElementById('user-mgmt-username').value.trim();
+            const password = document.getElementById('user-mgmt-password').value.trim();
+            const role = document.getElementById('user-mgmt-role').value;
+
+            if (internalUsers.some(u => u.username === username) || username === 'admin') {
+                return showToast('Operator username identity already registered!', 'warning');
+            }
+
+            const newUser = {
+                username: username,
+                password: password,
+                role: role
+            };
+
+            const { error } = await db.from('system_users').insert([newUser]);
+            if (error) return showToast(error.message, 'error');
+
+            closeModal('user-modal');
+            await navigate('users');
+            showToast(`User ${username} successfully provisioned to backend context.`, 'success');
+        }
+
+        async function deleteUser(id) {
+            if (confirm('Revoke access credentials and erase this operator account permanently from the cloud matrix?')) {
+                const { error } = await db.from('system_users').delete().eq('id', id);
+                if (error) return showToast(error.message, 'error');
+                await navigate('users');
+                showToast('Operator profile cleared from systems.', 'info');
+            }
+        }
+
         /* ==================== CORE UI MANAGEMENT HELPERS ==================== */
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function showToast(message, type = 'info') {
@@ -1020,8 +1270,8 @@ function filterPOS() {
             setTimeout(() => toast.remove(), 3500);
         }
 
-        // Initialize operational pipeline
-        navigate('pos');
+        // Initialize operational pipeline and verify authentication cookies
+        checkInitialSession();
     </script>
 </body>
 </html>
