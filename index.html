@@ -513,13 +513,17 @@
             }
         }
 
-        function filterPOS() {
+function filterPOS() {
             const query = document.getElementById('pos-search').value.toLowerCase();
             const grid = document.getElementById('pos-grid');
             const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query));
 
             grid.innerHTML = filtered.map(p => {
                 const isOOS = p.stock <= 0;
+                // Look up the supplier name using the product's supplier_id
+                const supplier = suppliers.find(s => s.id === p.supplier_id);
+                const supplierName = supplier ? supplier.name : 'Unknown Supplier';
+
                 return `
                 <div onclick="addToCart('${p.id}')" class="bg-white rounded p-4 border shadow-sm cursor-pointer hover:border-blue-400 flex flex-col h-full transition-shadow hover:shadow-md ${isOOS ? 'opacity-50' : ''}">
                     <div class="flex justify-between items-start mb-1">
@@ -527,6 +531,10 @@
                         <div class="text-2xl">${p.icon || '📦'}</div>
                     </div>
                     <div class="font-bold text-gray-800 flex-1 leading-tight my-1">${p.name}</div>
+                    <!-- Added Supplier Information badge below the product name -->
+                    <div class="text-xs text-purple-600 font-medium mb-2 bg-purple-50 px-2 py-0.5 rounded self-start">
+                        <i class="fa-solid fa-truck field mr-1"></i>${supplierName}
+                    </div>
                     <div class="flex justify-between items-end mt-2">
                         <div class="text-lg font-bold text-blue-600">$${Number(p.price).toFixed(2)}</div>
                         <div class="text-xs font-semibold ${isOOS ? 'text-red-500' : 'text-green-600'}">Stock: ${p.stock}</div>
